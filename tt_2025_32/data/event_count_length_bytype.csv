@@ -1,0 +1,39 @@
+event_type,year_start,year_end,year_count,event_count
+Compound,1992,1992,1,1
+"Rain & flooding",1999,2000,2,1
+Drought,2002,2003,2,1
+Compound,2007,2007,1,1
+Impact,2007,2007,1,1
+"Rain & flooding",2009,2011,3,1
+Drought,2010,2011,2,1
+"Rain & flooding",2010,2010,1,1
+Drought,2011,2011,1,2
+"Rain & flooding",2011,2011,1,1
+Drought,2012,2012,1,1
+"Rain & flooding",2012,2012,1,2
+Drought,2014,2014,1,2
+Compound,2015,2017,3,1
+Drought,2015,2017,3,1
+Drought,2015,2019,5,1
+Drought,2015,2016,2,1
+Drought,2015,2015,1,4
+"Rain & flooding",2015,2015,1,1
+Drought,2016,2016,1,3
+Impact,2016,2016,1,1
+"Rain & flooding",2016,2016,1,1
+Drought,2017,2017,1,1
+Drought,2018,2018,1,1
+"Rain & flooding",2018,2018,1,2
+Drought,2019,2021,3,1
+Impact,2019,2019,1,1
+"Rain & flooding",2020,2020,1,1
+Drought,2021,2022,2,1
+Drought,2021,2021,1,1
+Wildfire,2021,2021,1,1
+"Rain & flooding",2022,2022,1,2
+Storm,2022,2022,1,1
+Heat,2023,2023,1,1
+"Rain & flooding",2023,2023,1,2
+Drought,2024,2024,1,1
+Heat,2024,2024,1,2
+"Rain & flooding",2024,2024,1,1
