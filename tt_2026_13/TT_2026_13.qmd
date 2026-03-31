@@ -1,0 +1,30 @@
+---
+title: "Exploring Coastal Ocean Temperatures in Nova Scotia"
+subtitle: "Tidy Tuesday Submission for 2026-03-31"
+date: 2026-03-31
+author: Ntobeko Sosibo
+toc: false
+toc-location: left
+toc-title: "Outline"
+toc-depth: 6
+format:
+  html:
+    mainfont: "Roboto"
+    page-layout: article
+    grid:
+      sidebar-width: 50px
+      body-width: 1800px
+      margin-width: 50px
+      gutter-width: 4rem
+    include-in-header:
+      text: |
+        <link rel="icon" type="image/png" href="www/icons/favicon.png">
+    embed-resources: true
+    self-contained: true
+execute:
+  freeze: auto
+editor: 
+  markdown: 
+    wrap: 72
+---
+
