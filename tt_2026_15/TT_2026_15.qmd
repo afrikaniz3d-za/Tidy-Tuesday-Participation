@@ -1,0 +1,29 @@
+---
+title: "Bird Sightings at Sea"
+subtitle: "Tidy Tuesday Submission for 2026-04-14"
+date: 2026-04-14
+author: Ntobeko Sosibo
+toc: false
+toc-location: left
+toc-title: "Outline"
+toc-depth: 6
+format:
+  html:
+    mainfont: "Roboto"
+    page-layout: article
+    grid:
+      sidebar-width: 50px
+      body-width: 1900px
+      margin-width: 25px
+      gutter-width: 4rem
+    include-in-header:
+      text: |
+        <link rel="icon" type="image/png" href="www/icons/favicon.png">
+    embed-resources: true
+    self-contained: true
+execute:
+  freeze: auto
+editor: 
+  markdown: 
+    wrap: 72
+---
