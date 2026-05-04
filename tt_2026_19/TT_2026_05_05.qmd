@@ -27,3 +27,724 @@ editor:
   markdown: 
     wrap: 72
 ---
+
+## Going over the main questions  
+
+xx  
+
+### Which industries have increased production, and which have decreased?  
+
+xx  
+
+### How has the average weight per ship changed over time?  
+
+xx  
+
+&nbsp;  
+
+&nbsp;  
+
+
+```{r}
+#| code-fold: true
+#| label: industrial-italy
+#| fig-width: 12
+#| fig-height: 17
+#| echo: true
+#| eval: true
+#| message: true
+#| warning: false
+
+#loading libraries
+suppressPackageStartupMessages({
+  library(readr)
+  library(dplyr)
+  library(tidyr)
+  library(stringr)
+  library(lubridate)
+  library(echarts4r)
+  library(htmltools)
+  library(htmlwidgets)
+  library(webshot2) # for exporting the presentation panel as a high resolution image
+  })
+
+# bringing in the data data
+food_beverages_padded <- read.csv("data/food_beverages_padded.csv")
+textiles_padded <- read.csv("data/textiles_padded.csv")
+transport_padded <- read.csv("data/transport_padded.csv")
+
+# introducing the colour palette
+
+# generating the charts
+# food and beverages chart
+food_beverages_output <- food_beverages_padded |>
+  e_charts(
+    Year,
+    height = 360
+    ) |>
+  e_heatmap(
+    product,
+    pop,
+    itemStyle = list(
+      borderColor = "#ffffff", 
+      borderWidth = 3         
+      )
+    ) |>
+  e_visual_map(
+    show = FALSE,
+    pop,
+    orient = "horizontal",
+    calculable = TRUE,
+    inRange = list(
+      color = c("#e8e3e2", "#ff1000ff")
+      ),
+    min = min(food_beverages_padded$pop, na.rm = TRUE),
+    max = max(food_beverages_padded$pop, na.rm = TRUE),
+    outOfRange = list(
+      color = "#fff"
+      )
+    ) |>
+  e_grid(
+    left = 380,
+    right = 5,
+    top = 65,
+    bottom = 5
+    ) |>
+  e_x_axis(
+    show = FALSE
+    ) |>
+  e_y_axis(
+    show = TRUE,
+    inverse = FALSE, 
+    axisLabel = list(
+    margin = 20, 
+    fontFamily = "Plus Jakarta Sans",
+    fontSize = 22,
+    formatter = htmlwidgets::JS(
+          "function (value, index) {
+  if (typeof value === 'string') {
+    var minorWords = ['and', 'or', 'of', 'the', 'with'];
+    return value
+      .replace('_pop', '')
+      .replace(/_/g, ' ')
+      .split(' ')
+      .map((word, i) => {
+        if (i > 0 && minorWords.includes(word.toLowerCase())) {
+          return word.toLowerCase();
+        }
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
+      .join(' ');
+  }
+  return value;
+}"
+        )
+    ),
+    axisLine = list(show = FALSE),
+    axisTick = list(show = FALSE)
+    ) |>
+  e_mark_line(
+    data = list(xAxis = "1943"), 
+    symbol = c("circle", "circle"),
+    symbolSize = c(8, 8),          
+    lineStyle = list(
+      color = "#443",           
+      width = 3,                   
+      type = "dashed",              
+      opacity = 0.8
+      ),
+    label = list(
+      show = TRUE,
+      formatter = "1943 Allied Invasion",              # Or your custom text
+      position = "end",                # Puts it at the top
+      fontSize = 36,                   # This is the size control
+      fontWeight = "bold",             # This makes it heavy
+      fontFamily = "Plus Jakarta Sans",
+      color = "#ff1000ff",
+      distance = 25                    # Space between the circle and text
+    )
+    ) |>
+  e_tooltip(
+    trigger = "item",
+    backgroundColor = "rgba(255,255,255,0.8)",
+    borderRadius = 12,
+    padding = list(14, 16),
+    formatter = htmlwidgets::JS("
+  function(params) {
+    var p = params;
+    var rawProduct = p.value[1]; // Grabs the 'sugar_pop' style name
+    var val = p.value[2];
+    var year = p.name; 
+
+    // Reusable formatting logic for the Product Name
+    var formatProduct = function(str) {
+      if (typeof str !== 'string') return str;
+      var minorWords = ['and', 'or', 'of', 'the', 'with'];
+      return str
+        .replace('_pop', '')
+        .replace(/_/g, ' ')
+        .split(' ')
+        .map((word, i) => {
+          if (i > 0 && minorWords.includes(word.toLowerCase())) {
+            return word.toLowerCase();
+          }
+          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        })
+        .join(' ');
+    };
+
+    var product = formatProduct(rawProduct);
+
+    return '<div>' +
+      // Chart Group Title
+      '<div style=\"font-family:Plus Jakarta Sans;font-size:26px;font-weight:normal;margin-bottom:20px; padding-top: 20px; padding-left: 20px; padding-right: 20px; color:#666;text-transform:uppercase;letter-spacing:1px;\">' +
+        'Food and Beverages' +
+      '</div>' +
+      
+      // Cleaned Product Name
+      '<div style=\"font-family:Plus Jakarta Sans; font-size:35px; font-weight:bold; margin-bottom:30px;  padding-left: 20px; color:#333;\">' +
+        product +
+      '</div>' +
+      
+      // The Central Spine Grid
+      '<div style=\"display:grid; grid-template-columns: max-content min-content 1fr; column-gap:26px; font-size:34px; font-family:Plus Jakarta Sans; align-items: center;\">' +
+      
+        // Row 1: Year
+        '<div style=\"text-align:right; color:#666; margin-bottom:30px; font-size:34px;\">Year</div>' +
+        '<div style=\"opacity:0.6; margin-bottom:30px; font-size:34px;\">:</div>' +
+        '<div style=\"margin-bottom:20px; color:#333; margin-bottom:30px; font-size:34px;\"><b>' + year + '</b></div>' +
+
+        // Row 2: Percentage of Peak
+        '<div style=\"text-align:right; color:#666; margin-bottom:40px; margin-left: 20px; font-size:34px; \">Peak %</div>' +
+        '<div style=\"opacity:0.6; margin-bottom:40px; font-size:34px;\">:</div>' +
+        '<div style=\"margin-bottom:40px; color:#333; font-size:34px;\"><b>' + val + '%</b></div>' +
+      '</div>' +
+    '</div>';
+  }
+")
+    ) 
+
+# textiles chart
+textiles_output <- textiles_padded |>
+  e_charts(
+    Year,
+    height = 410
+    ) |>
+  e_heatmap(
+    product,
+    pop,
+    itemStyle = list(
+      borderColor = "#ffffff", 
+      borderWidth = 3         
+      )
+    ) |>
+  e_visual_map(
+    show = FALSE,
+    pop,
+    orient = "horizontal",
+    calculable = TRUE,
+    inRange = list(
+      color = c("#e8e3e2", "#ab263cff")
+      ),
+    min = min(textiles_padded$pop, na.rm = TRUE),
+    max = max(textiles_padded$pop, na.rm = TRUE),
+    outOfRange = list(
+      color = "#fff"
+      )
+    ) |>
+  e_grid(
+    left = 380,
+    right = 5,
+    top = 5,
+    bottom = 5
+    ) |>
+  e_x_axis(
+    show = FALSE
+    ) |>
+  e_y_axis(
+    show = TRUE,
+    inverse = FALSE, 
+    axisLabel = list(
+    margin = 20, 
+    fontFamily = "Plus Jakarta Sans",
+    fontSize = 22,
+    formatter = htmlwidgets::JS(
+          "function (value, index) {
+  if (typeof value === 'string') {
+    var minorWords = ['and', 'or', 'of', 'the', 'with'];
+    return value
+      .replace('_pop', '')
+      .replace(/_/g, ' ')
+      .split(' ')
+      .map((word, i) => {
+        if (i > 0 && minorWords.includes(word.toLowerCase())) {
+          return word.toLowerCase();
+        }
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
+      .join(' ');
+  }
+  return value;
+}"
+        )
+    ),
+    axisLine = list(show = FALSE),
+    axisTick = list(show = FALSE)
+    ) |>
+  e_mark_line(
+    data = list(xAxis = "1943"), 
+    symbol = c("circle", "circle"),
+    symbolSize = c(8, 8),          
+    lineStyle = list(
+      color = "#443",           
+      width = 3,                   
+      type = "dashed",              
+      opacity = 0.8
+      ),
+    label = list(show = FALSE)      # Keep it clean
+    ) |>
+  e_tooltip(
+    trigger = "item",
+    backgroundColor = "rgba(255,255,255,0.8)",
+    borderRadius = 12,
+    padding = list(14, 16),
+    formatter = htmlwidgets::JS("
+  function(params) {
+    var p = params;
+    var rawProduct = p.value[1]; // Grabs the 'sugar_pop' style name
+    var val = p.value[2];
+    var year = p.name; 
+
+    // Reusable formatting logic for the Product Name
+    var formatProduct = function(str) {
+      if (typeof str !== 'string') return str;
+      var minorWords = ['and', 'or', 'of', 'the', 'with'];
+      return str
+        .replace('_pop', '')
+        .replace(/_/g, ' ')
+        .split(' ')
+        .map((word, i) => {
+          if (i > 0 && minorWords.includes(word.toLowerCase())) {
+            return word.toLowerCase();
+          }
+          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        })
+        .join(' ');
+    };
+
+    var product = formatProduct(rawProduct);
+
+    return '<div>' +
+      // Chart Group Title
+      '<div style=\"font-family:Plus Jakarta Sans;font-size:26px;font-weight:normal;margin-bottom:20px; padding-top: 20px; padding-left: 20px; padding-right: 20px; color:#666;text-transform:uppercase;letter-spacing:1px;\">' +
+        'Textiles' +
+      '</div>' +
+      
+      // Cleaned Product Name
+      '<div style=\"font-family:Plus Jakarta Sans; font-size:35px; font-weight:bold; margin-bottom:30px;  padding-left: 20px; color:#333;\">' +
+        product +
+      '</div>' +
+      
+      // The Central Spine Grid
+      '<div style=\"display:grid; grid-template-columns: max-content min-content 1fr; column-gap:26px; font-size:34px; font-family:Plus Jakarta Sans; align-items: center;\">' +
+      
+        // Row 1: Year
+        '<div style=\"text-align:right; color:#666; margin-bottom:30px; font-size:34px;\">Year</div>' +
+        '<div style=\"opacity:0.6; margin-bottom:30px; font-size:34px;\">:</div>' +
+        '<div style=\"margin-bottom:20px; color:#333; margin-bottom:30px; font-size:34px;\"><b>' + year + '</b></div>' +
+
+        // Row 2: Percentage of Peak
+        '<div style=\"text-align:right; color:#666; margin-bottom:40px; margin-left: 20px; font-size:34px; \">Peak %</div>' +
+        '<div style=\"opacity:0.6; margin-bottom:40px; font-size:34px;\">:</div>' +
+        '<div style=\"margin-bottom:40px; color:#333; font-size:34px;\"><b>' + val + '%</b></div>' +
+      '</div>' +
+    '</div>';
+  }
+")
+    ) 
+
+# transport chart
+transport_output <- transport_padded |>
+  e_charts(
+    Year,
+    height = 460
+    ) |>
+  e_heatmap(
+    product,
+    pop,
+    itemStyle = list(
+      borderColor = "#ffffff", 
+      borderWidth = 3         
+      )
+    ) |>
+  e_visual_map(
+    show = FALSE,
+    pop,
+    orient = "horizontal",
+    calculable = TRUE,
+    inRange = list(
+      color = c("#e8e3e2", "#E3735E")
+      ),
+    min = min(textiles_padded$pop, na.rm = TRUE),
+    max = max(textiles_padded$pop, na.rm = TRUE),
+    outOfRange = list(
+      color = "#fff"
+      )
+    ) |>
+  e_grid(
+    left = 350,
+    right = 5,
+    top = 5,
+    bottom = 5
+    ) |>
+  e_x_axis(
+    show = TRUE,
+    nameLocation = "middle",
+    nameGap = 150,
+    axisLabel = list(
+    margin = 20, 
+    fontFamily = "Plus Jakarta Sans",
+    fontSize = 22
+    ),
+    axisLine = list(show = FALSE),
+    axisTick = list(show = TRUE)
+    ) |>
+  e_y_axis(
+    show = TRUE,
+    inverse = FALSE, 
+    axisLabel = list(
+    margin = 20, 
+    fontFamily = "Plus Jakarta Sans",
+    fontSize = 22,
+    formatter = htmlwidgets::JS(
+          "function (value, index) {
+  if (typeof value === 'string') {
+    var minorWords = ['and', 'or', 'of', 'the', 'with'];
+    return value
+      .replace('_pop', '')
+      .replace(/_/g, ' ')
+      .split(' ')
+      .map((word, i) => {
+        if (i > 0 && minorWords.includes(word.toLowerCase())) {
+          return word.toLowerCase();
+        }
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
+      .join(' ');
+  }
+  return value;
+}"
+        )
+    ),
+    axisLine = list(show = FALSE),
+    axisTick = list(show = FALSE),
+    ) |>
+  e_mark_line(
+    data = list(xAxis = "1943"), 
+    symbol = c("circle", "circle"),
+    symbolSize = c(8, 8),          
+    lineStyle = list(
+      color = "#443",           
+      width = 3,                   
+      type = "dashed",              
+      opacity = 0.8
+      ),
+    label = list(show = FALSE)      # Keep it clean
+    ) |>
+  e_tooltip(
+    trigger = "item",
+    backgroundColor = "rgba(255,255,255,0.8)",
+    borderRadius = 12,
+    padding = list(14, 16),
+    formatter = htmlwidgets::JS("
+  function(params) {
+    var p = params;
+    var rawMode = p.value[1]; // Grabs the '_pop' style name
+    var val = p.value[2];
+    var year = p.name; 
+
+    // Reusable formatting logic for the Transport Mode Name
+    var formatMode = function(str) {
+      if (typeof str !== 'string') return str;
+      var minorWords = ['and', 'or', 'of', 'the', 'with'];
+      return str
+        .replace('_pop', '')
+        .replace(/_/g, ' ')
+        .split(' ')
+        .map((word, i) => {
+          if (i > 0 && minorWords.includes(word.toLowerCase())) {
+            return word.toLowerCase();
+          }
+          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        })
+        .join(' ');
+    };
+
+    var mode = formatMode(rawMode);
+
+    return '<div>' +
+      // Chart Group Title
+      '<div style=\"font-family:Plus Jakarta Sans;font-size:26px;font-weight:normal;margin-bottom:20px; padding-top: 20px; padding-left: 20px; padding-right: 20px; color:#666;text-transform:uppercase;letter-spacing:1px;\">' +
+        'Transport' +
+      '</div>' +
+      
+      // Transport Mode Name
+      '<div style=\"font-family:Plus Jakarta Sans; font-size:35px; font-weight:bold; margin-bottom:30px;  padding-left: 20px; padding-right: 20px; color:#333;\">' +
+        mode +
+      '</div>' +
+      
+      // The Central Spine Grid
+      '<div style=\"display:grid; grid-template-columns: max-content min-content 1fr; column-gap:26px; font-size:34px; font-family:Plus Jakarta Sans; align-items: center;\">' +
+      
+        // Row 1: Year
+        '<div style=\"text-align:right; color:#666; margin-bottom:30px; font-size:34px;\">Year</div>' +
+        '<div style=\"opacity:0.6; margin-bottom:30px; font-size:34px;\">:</div>' +
+        '<div style=\"margin-bottom:20px; color:#333; margin-bottom:30px; font-size:34px;\"><b>' + year + '</b></div>' +
+
+        // Row 2: Percentage of Peak
+        '<div style=\"text-align:right; color:#666; margin-bottom:40px; margin-left: 20px; font-size:34px; \">Peak %</div>' +
+        '<div style=\"opacity:0.6; margin-bottom:40px; font-size:34px;\">:</div>' +
+        '<div style=\"margin-bottom:40px; color:#333; font-size:34px;\"><b>' + val + '%</b></div>' +
+      '</div>' +
+    '</div>';
+  }
+")
+    ) 
+
+# presentation base container (this is the canvass)
+istat_final_viz <- 
+  htmltools::tagList(
+  tags$div(
+    style = "
+
+      background-color: white;
+      padding: 50px;
+      margin-left: 50px;
+      margin-right: 50px;
+      margin-bottom: 40px;
+      margin-top: 40px;
+      ",
+
+    # responsive flexbox that istat logo and headline
+tags$div(
+  style = "
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 30px; 
+    align-items: flex-start; 
+    width: 100%;
+  ", 
+  
+  # Icon wrapper - Width now matches the image inside
+  tags$div(
+    style = "
+      flex: 0 0 150px;
+      display: flex; 
+      flex-direction: column;
+      margin-bottom: 45px;
+      margin-right: 75px;
+    ",
+    tags$img(
+      src = "images/icons/mi_istats_logo.png",      
+      width = "290px",               
+      height = "auto", # maintains aspect ratio
+      style = "display: block;"
+    )
+  ), 
+
+  # Headline and subtitle wrapper
+  tags$div(
+    style = "
+      flex: 1;
+      min-width: 400px; 
+      display: flex; 
+      flex-direction: column;
+      padding-bottom: 20px;
+    ",
+    # Title
+    tags$div(
+      style = "text-align:left; margin-bottom: 15px; font-family: 'Charis SIL'; font-weight: 950; line-height: 1.1;",
+      HTML(
+        "<span style='color:#334; font-size:76px;'>A CENTURY OF CHANGE: <span style='color:#ff1000ff; font-size:76px;'> 1943 </span> AS THE AXIS OF ITALIAN INDUSTRIAL </span> <span style='color:#ab263cff; font-size:76px;'> RESILIENCE </span> <span style='color:#334; font-size:76px;'> AND REINVENTION. A LOOK AT PERCENTAGE OF PEAKS.</span>"
+      )
+    ),
+    # Subtitle
+    tags$div(
+      style = "text-align:left; font-family: 'Roboto'; font-size:46px; font-weight: 300; color:#888; line-height:1.4; margin-bottom:30px;",
+      HTML(
+        "A distinct gap can be observed across <b>Food and Beverages</b>, a disruption likely caused by the <b>1943 Allied Invasion</b>. While <b>Textiles</b> remained Italy's most resilient industry for nearly a century, the post-war era signaled a permanent structural decline in <i>Raw Silk</i> and <i>Flock Yarn</i> failing to regain their pre-invasion momentum. <b>Transport</b> reflects a pivot toward modern scale, with the average weight per ship steadily increasing as maritime production consolidated."
+      )
+    )
+  )
+),
+    
+    
+
+
+
+# responsive flexbox that holds the three charts
+tags$div(
+  style = "
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 10px; 
+    align-items: flex-start; 
+    width: 100%;
+  ",
+  
+  # food and beverages chart wrapper
+  tags$div(
+    style = "
+      flex: auto; 
+      width: 100%; 
+      display: flex; 
+      flex-direction: column;
+    ",
+    
+    # food and beverages chart title
+    tags$div(
+      "FOOD AND BEVERAGES",
+      style = "font-family: 'Plus Jakarta Sans'; font-size: 32px; font-weight: bold; color: #ff1000ff; text-align: left; margin-bottom: 10px;"
+    ),
+    
+    # chart placeholder (you could have put the complete code here too, like the line chart)
+    food_beverages_output
+  ),
+  
+  # textiles chart wrapper
+  tags$div(
+    style = "
+      flex: auto; 
+      width: 100%; 
+      display: flex; 
+      flex-direction: column;
+    ",
+    
+    # textiles chart title
+    tags$div(
+      "TEXTILES",
+      style = "font-family: 'Plus Jakarta Sans'; font-size: 32px; font-weight: bold; color: #ab263cff; text-align: left; margin-bottom: 10px;"
+    ),
+    
+    # chart placeholder (you could have put the complete code here too, like the line chart)
+    textiles_output
+  ),
+  
+  # transport chart wrapper
+  tags$div(
+    style = "
+      flex: auto; 
+      width: 100%; 
+      display: flex; 
+      flex-direction: column;
+    ",
+    
+    # transport chart title
+    tags$div(
+      "TRANSPORT",
+      style = "font-family: 'Plus Jakarta Sans'; font-size: 32px; font-weight: bold; color: #E3735E; text-align: left; margin-bottom: 10px;"
+    ),
+    
+    # chart placeholder (you could have put the complete code here too, like the line chart)
+    transport_output
+  )
+), # closing responsive flexbox that holds both charts
+
+
+# start of page footer with data and author details
+tags$div(
+      style = "text-align: center; margin-top: 100px; margin-bottom: 10px;",
+    
+
+  tags$span(
+    "Data Source :",
+    style = "color: #888; text-decoration: none; font-family: Plus Jakarta Sans; font-weight: 450; font-size: 26px"),
+
+  # tidy tuesday repo link
+  tags$a(
+    "ISTAT (Istituto nazionale di statistica / Italian National Institute of Statistics) via Tidy Tuesday (2026-05-05, Week 19)",
+    href = "https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-04-14",
+    target = "_blank",
+    style = "color: #ab263cff; text-decoration: none; font-family: Plus Jakarta Sans; font-weight: bold; font-size: 30px"
+    ),
+
+  HTML("&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;"),
+
+  # linkedin logo
+  tags$img(
+    HTML('<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="#ab263cff" class="bi bi-linkedin" viewBox="0 0 16 16">
+  <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.934c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z"/>
+</svg>')
+    ), 
+
+  # linkedin link
+  tags$a(
+    "  Ntobeko Sosibo  ",
+    href = "https://www.linkedin.com/in/ntobeko-sosibo/",
+    target = "_blank",
+    style = "margin-left: 20px; color: #888; text-decoration: none; font-family: Plus Jakarta Sans; font-weight: 450; font-size: 30px"
+    ),
+  
+  HTML("&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;"),
+
+  # github logo
+  tags$img(
+    HTML(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="#ab263cff" class="bi bi-github" viewBox="0 0 16 16">
+  <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/>
+</svg>'
+    )
+  ),
+  
+  # github link
+  tags$a(
+    "afrikaniz3d-za",
+    href = "https://github.com/afrikaniz3d-za",
+    target = "_blank",
+    style = "margin-left: 20px; color: #888; text-decoration: none; font-family: Plus Jakarta Sans; font-weight: 450; font-size: 30px"
+    ),
+  
+  HTML("&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;"), 
+
+  # bluesky logo
+  tags$img(
+    HTML(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="#ab263cff" class="bi bi-bluesky" viewBox="0 0 16 16">
+  <path d="M3.468 1.948C5.303 3.325 7.276 6.118 8 7.616c.725-1.498 2.698-4.29 4.532-5.668C13.855.955 16 .186 16 2.632c0 .489-.28 4.105-.444 4.692-.572 2.04-2.653 2.561-4.504 2.246 3.236.551 4.06 2.375 2.281 4.2-3.376 3.464-4.852-.87-5.23-1.98-.07-.204-.103-.3-.103-.218 0-.081-.033.014-.102.218-.379 1.11-1.855 5.444-5.231 1.98-1.778-1.825-.955-3.65 2.28-4.2-1.85.315-3.932-.205-4.503-2.246C.28 6.737 0 3.12 0 2.632 0 .186 2.145.955 3.468 1.948"/>
+</svg>'
+    )
+    ),
+
+  # bluesky link
+  tags$a(
+    "afrikaniz3d",
+    href = "https://bsky.app/profile/afrikaniz3d.bsky.social",
+    target = "_blank",
+    style = "margin-left: 20px; color: #888; text-decoration: none; font-family: Plus Jakarta Sans; font-weight: 450; font-size: 30px"
+    )
+  ) # closing page footer with data and author details
+)
+)
+
+istat_final_viz
+
+#------------------------------------------------------
+# exporting the presentation as a high resolution image
+#------------------------------------------------------
+  
+# writing the html file directly to the project folder
+ htmltools::save_html(istat_final_viz, "istat_final_render.html")
+
+
+# webshot "takes" a picture of the html file, saving it in the same directory
+webshot2::webshot(
+  url = "istat_final_render.html",
+  file = "Italian_production_Final.png",
+  vwidth = 3840,   
+  vheight = 1920,
+  delay = 4,       # extra time for any animations to complete playing
+  zoom = 2         # double pixel density for sharpness
+  )
+
+```
+
