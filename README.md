@@ -8,7 +8,7 @@
 - TT-2026-13: [Coastal Ocean Temperature by Depth](https://github.com/afrikaniz3d-za/Tidy-Tuesday-Participation/tree/main/tt_2026_13)
 - TT-2026-14: [Bird Sightings at Sea](https://github.com/afrikaniz3d-za/Tidy-Tuesday-Participation/tree/main/tt_2026_15)
 - TT-2026-18: [Italian Industrial Production](https://github.com/afrikaniz3d-za/Tidy-Tuesday-Participation/tree/main/tt_2026_19)
-![](/images/Italian_production_Final_(set).png)  
+![](tt_2026_18/images/Italian_production_Final_(set).png)  
 
 &nbsp;
 
