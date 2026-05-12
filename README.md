@@ -7,4 +7,5 @@
 - TT-2025-32: [Climate Events in Sub-Saharan Africa](https://github.com/afrikaniz3d-za/Tidy-Tuesday-Participation/tree/main/tt_2025_32)
 - TT-2026-13: [Coastal Ocean Temperature by Depth](https://github.com/afrikaniz3d-za/Tidy-Tuesday-Participation/tree/main/tt_2026_13)
 - TT-2026-14: [Bird Sightings at Sea](https://github.com/afrikaniz3d-za/Tidy-Tuesday-Participation/tree/main/tt_2026_15)
-- TT-2026-19: [Italian Industrial Production](https://github.com/afrikaniz3d-za/Tidy-Tuesday-Participation/tree/main/tt_2026_19)  
+- TT-2026-18: [Italian Industrial Production](https://github.com/afrikaniz3d-za/Tidy-Tuesday-Participation/tree/main/tt_2026_19)
+- TT-2026-19: [Tinned Towns](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-05-12)
