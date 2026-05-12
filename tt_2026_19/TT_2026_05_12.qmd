@@ -1,0 +1,548 @@
+---
+title: "Twinned Towns"
+subtitle: "Tidy Tuesday Submission for 2026-05-12"
+date: 2026-05-12
+author: Ntobeko Sosibo
+toc: false
+toc-location: left
+toc-title: "Outline"
+toc-depth: 6
+format:
+  html:
+    mainfont: "Roboto"
+    page-layout: article
+    grid:
+      sidebar-width: 50px
+      body-width: 3840px
+      margin-width: 25px
+      gutter-width: 4rem
+    include-in-header:
+      text: |
+        <link rel="icon" type="image/png" href="www/icons/favicon.png">
+    embed-resources: true
+    self-contained: true
+execute:
+  freeze: auto
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+## My Goal  
+
+As a Durbanite South African I'm curious about which city we're twinning with, 
+extending that to finding out the cities that have tied themselves with the rest
+of the country.  
+
+Something I became curious about as I explored the data was whether South Africa
+has a good twinning relationship with other BRICS nations. The BRIC was 
+established between 2006 and 2009, with South Africa completing the acronym in 
+2010.  
+
+&nbsp;  
+
+&nbsp;  
+
+
+```{r}
+#| code-fold: true
+#| label: bric-city-twins
+#| fig-width: 12
+#| fig-height: 17
+#| echo: true
+#| eval: true
+#| message: true
+#| warning: false
+
+#loading libraries
+suppressPackageStartupMessages({
+  library(readr)
+  library(dplyr)
+  library(tidyr)
+  library(stringr)
+  library(geosphere)
+  library(leaflet)
+  library(sf)
+  library(jsonlite)
+  library(htmltools)
+  library(htmlwidgets)
+  library(webshot2) # for exporting the presentation panel as a high resolution image
+  })
+
+# bringing in the data data
+links_with_coords <- read.csv("data/links_with_coords.csv")
+
+# ensuring the CRS is explicitly what Leaflet wants
+world_sf <- st_read("www/countries.geo.json") |> 
+  st_transform(4326)
+
+# defining the separate groups for the color palettes
+south_african_links_with_coords <- links_with_coords |> 
+  filter(
+    links_with_coords$source_country_name == "South Africa")
+
+south_african_links_data <- south_african_links_with_coords |>
+   mutate(
+     dist = distHaversine(matrix(c(source_lng, source_lat), ncol = 2), 
+                          matrix(c(target_lng, target_lat), ncol = 2)) / 1000,
+                          )
+
+ # counting connections per country
+ country_counts <- south_african_links_data |>
+   count(target_country_name, name = "twin_count") |>
+   mutate(is_brics = target_country_name %in% c("Brazil", "Russia", "India", "China", "South Africa"))
+ 
+# combining back to the main data for plotting
+ plot_data <- south_african_links_data |>
+   left_join(country_counts, by = "target_country_name")
+
+# colorNumeric creates a range based on the twin_count
+orange_pal <- colorNumeric(palette = c("#f59a78", "#e65823"), domain = country_counts$twin_count)
+blue_pal   <- colorNumeric(palette = c("#79cfdc", "#2C89A0"), domain = country_counts$twin_count)
+ south_africa_colour <- "#e01f17"
+
+ # define the constant source (Durban/South Africa center)
+ # using coordinates approximately near Durban/central SA for the 'hub' look
+ sa_source_lng <- 31.0292
+ sa_source_lat <- -29.8587
+ 
+ # joining country counts to the local GeoJSON file
+ world_plot_sf <- world_sf %>%
+   left_join(country_counts, by = c("name" = "target_country_name"))
+  
+ # preparing the spatial data with final colors
+ world_plot_sf <- world_plot_sf |>
+   mutate(
+     is_brics = name %in% c("Brazil", "Russia", "India", "China"),
+     is_south_africa = name %in% "South Africa",
+     final_color = case_when(
+       is_south_africa ~ "#e01f17",
+       is.na(twin_count) ~ "#bababa77",              # warm gray for others
+       is_brics          ~ orange_pal(twin_count),   # orange for BRICS
+       TRUE              ~ blue_pal(twin_count)      # blue for non-BRICS
+     )
+   )
+
+# define the bounding/framing box
+# format: [lng1, lat1, lng2, lat2]
+world_bounds <- list(
+  c(15, -55),  # Southwest: Bottom of South America/Australia
+  c(50, 85)    # Northeast: Top of Greenland/Russia
+  )
+
+
+# creating a dataframe for annotations
+# and where the leader line points to (the country center).
+labels_data <- data.frame(
+  name = c(
+    "China", "Brazil", "United States of America", "Germany", "France",
+    "United Kingdom", "Netherlands", "Taiwan", "Mexico", "Venezuela", "Argentina",
+    "Ghana", "Cameroon", "Gabon", "Algeria", "Zimbabwe", "Kenya", "Palestine", 
+    "Azerbaijan", "Iran", "Portugal", "Italy", "Belgium", "Russia", "India", "South Korea"
+    ),
+  label_text = c("<strong>China</strong>: 4 Cities<br/>Daqing, Guangzhou<br/>Hangzhou, Nanjing",                  "<strong>Brazil</strong>: 3 Cities<br/>Campinas, Curitiba<br/>Rio de Janeiro", 
+                 "<strong>United States of America</strong>: 6 Cities<br/>Chicago, Jacksonville<br/>New Orleans, Palm Desert<br/>San Francisco, Washington D.C.",
+                 "<strong>Germany</strong>: 2 Cities<br/>Bremen, Aachen",
+                 "<strong>France</strong>: 2 Cities<br/>Nantes, Nice",
+                 "<strong>United Kingdom</strong>: 2 Cities<br/>London, Newcastle upon Tyne",
+                 "<strong>Netherlands</strong>: 1 City<br/>Delft",
+                 "<strong>Taiwan</strong>: 3 Cities<br/>Keelung, Tainan<br/>Taipei",
+                 "<strong>Mexico</strong>: 1 City<br/>Monterrey",
+                 "<strong>Venezuela</strong>: 1 City<br/>Maracaibo",
+                 "<strong>Argentina</strong>: 1 City<br/>Buenos Aires",
+                 "<strong>Ghana</strong>: 1 City<br/>Kumasi",
+                 "<strong>Cameroon</strong>: 1 City<br/>Douala",
+                 "<strong>Gabon</strong>: 1 City<br/>Libreville",
+                 "<strong>Algeria</strong>: 1 City<br/>Oran",
+                 "<strong>Zimbabwe</strong>: 1 City<br/>Bulawayo", 
+                 "<strong>Kenya</strong>: 1 City<br/>Mombasa", 
+                 "<strong>Palestine</strong>: 1 City<br/>Ramallah",
+                 "<strong>Azerbaijan</strong>: 1 City<br/>Baku",
+                 "<strong>Iran</strong>: 1 City<br/>Tehran",
+                 "<strong>Portugal</strong>: 1 City<br/>Maia", 
+                 "<strong>Italy</strong>: 1 City<br/>Verona", 
+                 "<strong>Belgium</strong>: 1 City<br/>Antwerp",
+                 "<strong>Russia</strong>: 1 City<br/>Saint Petersburg",
+                 "<strong>India</strong>: 1 City<br/>Bhubaneswar",
+                 "<strong>South Korea</strong>: 1 City<br/>Daejeon"
+                 ),
+  # where the text box sits
+  box_lng = c(
+    220,   # China
+    -110,  # Brazil
+    -190,  # USA
+    52,    # Germany
+    -32.5, # France
+    -30,   # United Kingdom
+    -5,    # Netherlands
+    160,   # Taiwan
+    -140,  # Mexico
+    -130,  # Venezuela
+    -120,  # Argentina
+    -32,   # Ghana
+    -15,   # Cameroon
+    -5,    # Gabon
+    -35,   # Algeria
+    60,    # Zimbabwe
+    70,    # Kenya
+    52,    # Palestine
+    65,    # Azerbaijan
+    73,    # Iran
+    -38,   # Portugal
+    32,    # Italy
+    38,    # Belgium
+    130,   # Russia
+    90,    # India
+    165    # South Korea
+    ), 
+  box_lat = c(
+    25,     # China
+    -21.5,  # Brazil
+    45,     # USA
+    65,     # Germany
+    55,     # France
+    65,     # United Kingdom
+    75,     # Netherlands
+    15,     # Taiwan
+    23,     # Mexico
+    1,      # Venezuela
+    -40,    # Argentina
+    9,      # Ghana
+    -15,    # Cameroon
+    -40,    # Gabon
+    27,     # Algeria
+    -40,    # Zimbabwe
+    -23,    # Kenya
+    17,     # Palestine
+    50,     # Azerbaijan
+    36,     # Iran
+    42,     # Portugal
+    39,     # Italy,
+    75,     # Belgium
+    77,     # Russia
+    -5,     # India
+    42      # South Korea
+    ),
+  # where the circle/pointer sits (country centroids)
+  point_lng = c(
+    104,      # China
+    -51,      # Brazil
+    -100,     # USA
+    10.45,    # Germany
+    2.21,     # France
+    -2.00,    # United Kingdom
+    5.29,     # Netherlands
+    120.96,   # Taiwan
+    -102.55,  # Mexico
+    -66.58,   # Venezuela
+    -63.61,   # Argentina
+    -1.02,    # Ghana
+    12.35,    # Cameroon
+    11.60,    # Gabon
+    3.05,     # Algeria
+    29.15,    # Zimbabwe
+    37.90,    # Kenya
+    35.23,    # Palestine
+    47.57,    # Azerbaijan
+    53.68,    # Iran
+    -8.22,    # Portugal
+    12.56,    # Italy
+    4.46,     # Belgium
+    105.31,   # Russia
+    78.96,    # India
+    127.77    # South Korea
+    ),
+  point_lat = c(
+    35,     # China
+    -14,    # Brazil
+    39,     # USA
+    51.16,  # Germany
+    46.22,  # France
+    54.00,  # United Kingdom
+    52.13,  # Netherlands
+    23.69,  # Taiwan
+    23.63,  # Mexico
+    6.42,   # Venezuela
+    -38.41, # Argentina
+    7.94,   # Ghana
+    5.8,    # Cameroon
+    -0.80,  # Gabon
+    28.03,  # Algeria
+    -19.01, # Zimbabwe
+    -0.02,  # Kenya
+    31.95,  # Palestine
+    40.14,  # Azerbaijan
+    32.42,  # Iran
+    39.39,  # Portugal
+    41.87,  # Italy
+    50.50,  # Belgium
+    61.52,  # Russia
+    20.59,  # India
+    35.90   # South Korea
+    )
+  )
+
+# rendering with a CSS background override with control of ocean colour
+twin_final <- leaflet(
+  data = world_plot_sf,
+  width = "100%",
+  height = 700,
+  options = leafletOptions(
+    zoomControl = FALSE,
+    zoomSnap = 0.1,
+    zoomDelta = 0.5,
+    minZoom = 2.3,
+    maxBounds = world_bounds,
+    maxBoundsViscosity = 0.1,
+    worldCopyJump = TRUE
+    )
+  ) |> 
+  setView(lng = 10, lat = 20, zoom = 1.7) |> 
+  addPolygons(
+    fillColor = ~final_color,
+    color = "#FFFFFF",
+    weight = 0.5,
+    fillOpacity = 1
+    ) 
+
+# individual Leader Lines
+# loop through the data to draw separate lines for each annotation
+for(i in 1:nrow(labels_data)) {
+  twin_final <- twin_final |>
+    addPolylines(
+      lng = c(labels_data$box_lng[i], labels_data$point_lng[i]),
+      lat = c(labels_data$box_lat[i], labels_data$point_lat[i]),
+      color = "#fff", 
+      weight = 1.4, 
+      opacity = 1
+      )
+  }
+  
+# circle dot at the country
+twin_final <- twin_final |>
+  addCircleMarkers(
+    data = labels_data, 
+    lng = ~point_lng, lat = ~point_lat,
+    radius = 2, 
+    color = "#fff", 
+    fillOpacity = 1, 
+    stroke = FALSE
+  ) |>
+  
+  # label box
+  addLabelOnlyMarkers(
+    data = labels_data, 
+    lng = ~box_lng, lat = ~box_lat,
+    label = ~lapply(label_text, htmltools::HTML),
+    labelOptions = labelOptions(
+      noHide = TRUE, 
+      direction = "center", 
+      style = list(
+        "font-family" = "Plus Jakarta Sans",
+        "background-color" = "rgba(255,255,255,1)", 
+        "border-radius" = "8px",
+        "padding" = "6px",
+        "font-size" = "12px",
+        "box-shadow" = "2px 2px 5px rgba(0,0,0,0)" # ensuring no shadow
+        )
+      )
+    ) |>
+  onRender("
+    function(el, x) {
+      el.style.backgroundColor = '#c3c3c355';
+    }
+  ")
+ 
+
+# presentation base container (this is the canvass)
+twin_final_viz <- 
+  htmltools::tagList(
+  tags$div(
+    style = "
+      background-color: white;
+      padding: 50px;
+      margin-left: 20px;
+      margin-right: 50px;
+      margin-bottom: 20px;
+      ",
+    
+  # responsive flexbox for the brics logo and headline
+ tags$div(
+   style = "
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 30px; 
+    align-items: flex-start; 
+    width: 100%;
+  ", 
+   
+   # icon wrapper - width now matches the image inside
+   tags$div(
+     style = "
+      flex: 0 0 150px;
+      display: flex; 
+      flex-direction: column;
+      margin-bottom: 25px;
+      margin-right: 25px;
+    ",
+     # brics logo
+     tags$img(
+       src = "images/brics_logo.png",     
+       width = "180px",             
+       height = "auto",
+       style = "margin-bottom: 15px;"
+     ) 
+   ), 
+   
+   # headline and subtitle wrapper
+   tags$div(
+     style = "
+      flex: 1;
+      min-width: 400px; 
+      display: flex; 
+      flex-direction: column;
+      padding-bottom: 20px;
+    ",
+     # title
+     tags$div(
+       style = "text-align:left; margin-bottom: 15px; font-family: 'Plus Jakarta Sans'; font-weight: 950; line-height: 1.1;",
+       HTML(
+         "<span style='color:#e01f17; font-size:44px;'> SOUTH AFRICA'S </span> <span style='color:#334; font-size:44px;'> RELATIONSHIP WITH ITS </span> <span style='color:#e65823; font-size:44px;'> BRICS </span> <span style='color:#334; font-size:44px;'> AND </span> <span style='color:#2C89A0; font-size:44px;'> NON-BRICS </span> <span style='color:#334; font-size:44px;'> CITY SISTERHOOD </span>"
+       )
+     ),
+     # subtitle
+     tags$div(
+       style = "text-align:left; font-family: 'Roboto'; font-size:26px; font-weight: 300; color:#888; line-height:1.4; margin-bottom:30px;",
+       HTML(
+         "As the last country to join what would become known as the core <b>BRICS</b> block, South Africa has an uneven balance of sister city ties with <b> Russia</b> and <b>India</b> - the latter being more notable because of the many connections in culture and industry. Given the large Indian diaspora in Durban, it can understood that many of the ties that exist are more informally categorised relationships."
+       )
+     )
+   )
+ ),
+
+# responsive flexbox that holds the chart
+tags$div(
+  style = "
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 20px; 
+    align-items: flex-start; 
+    width: 100%;
+  ",
+  
+  # world map wrapper
+  tags$div(
+    style = "
+      flex: auto; 
+      height: 700px;
+      min-width: 500px; 
+      display: flex; 
+      flex-direction: column;
+    ",
+    
+    # world map
+    twin_final
+  )
+), # closing responsive flexbox that holds both charts
+
+
+# start of page footer with data and author details
+tags$div(
+      style = "text-align: center; margin-top: 50px; margin-bottom: 10px;",
+    
+
+  tags$span(
+    "Data Source :",
+    style = "color: #888; text-decoration: none; font-family: Plus Jakarta Sans; font-weight: 450;"),
+
+  # tidy tuesday repo link
+  tags$a(
+    "Twin Towns, Twin Cities Explorer (Wikidata Query Service) via Tidy Tuesday (2026-19)",
+    href = "https://github.com/rfordatascience/tidytuesday/blob/main/data/2026/2026-05-12/readme.md",
+    target = "_blank",
+    style = "color: #e01f17; text-decoration: none; font-family: Plus Jakarta Sans; font-weight: bold;"
+    ),
+
+  HTML("&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;"),
+
+  # linkedin logo
+  tags$img(
+    HTML('<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#e01f17" class="bi bi-linkedin" viewBox="0 0 16 16">
+  <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.934c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z"/>
+</svg>')
+    ), 
+
+  # linkedin link
+  tags$a(
+    "  Ntobeko Sosibo  ",
+    href = "https://www.linkedin.com/in/ntobeko-sosibo/",
+    target = "_blank",
+    style = "margin-left: 10px; color: #888; text-decoration: none; font-family: Plus Jakarta Sans; font-weight: 450;"
+    ),
+  
+  HTML("&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;"),
+
+  # github logo
+  tags$img(
+    HTML(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#e01f17" class="bi bi-github" viewBox="0 0 16 16">
+  <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/>
+</svg>'
+    )
+  ),
+  
+  # github link
+  tags$a(
+    "afrikaniz3d-za",
+    href = "https://github.com/afrikaniz3d-za",
+    target = "_blank",
+    style = "margin-left: 10px; color: #888; text-decoration: none; font-family: Plus Jakarta Sans; font-weight: 450;"
+    ),
+  
+  HTML("&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;"), 
+
+  # bluesky logo
+  tags$img(
+    HTML(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#e01f17" class="bi bi-bluesky" viewBox="0 0 16 16">
+  <path d="M3.468 1.948C5.303 3.325 7.276 6.118 8 7.616c.725-1.498 2.698-4.29 4.532-5.668C13.855.955 16 .186 16 2.632c0 .489-.28 4.105-.444 4.692-.572 2.04-2.653 2.561-4.504 2.246 3.236.551 4.06 2.375 2.281 4.2-3.376 3.464-4.852-.87-5.23-1.98-.07-.204-.103-.3-.103-.218 0-.081-.033.014-.102.218-.379 1.11-1.855 5.444-5.231 1.98-1.778-1.825-.955-3.65 2.28-4.2-1.85.315-3.932-.205-4.503-2.246C.28 6.737 0 3.12 0 2.632 0 .186 2.145.955 3.468 1.948"/>
+</svg>'
+    )
+    ),
+
+  # bluesky link
+  tags$a(
+    "afrikaniz3d",
+    href = "https://bsky.app/profile/afrikaniz3d.bsky.social",
+    target = "_blank",
+    style = "margin-left: 10px; color: #888; text-decoration: none; font-family: Plus Jakarta Sans; font-weight: 450;"
+    )
+  ) # closing page footer with data and author details
+)
+)
+
+twin_final_viz
+
+#------------------------------------------------------
+# exporting the presentation as a high resolution image
+#------------------------------------------------------
+  
+# writing the html file directly to the project folder
+ htmltools::save_html(twin_final_viz, "temp_twin_final_render.html")
+
+
+# webshot "takes" a picture of the html file, saving it in the same directory
+webshot2::webshot(
+  url = "temp_twin_final_render.html",
+  file = "Twin_Final.png",
+  vwidth = 1920,   
+  vheight = 1080,
+  delay = 3,       # extra time for any animations to complete playing
+  zoom = 2         # double pixel density for sharpness
+  )
+```
+
+
+&nbsp;
+
+&nbsp;  
