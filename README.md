@@ -7,7 +7,7 @@
 - TT-2025-32: [Climate Events in Sub-Saharan Africa](https://github.com/afrikaniz3d-za/Tidy-Tuesday-Participation/tree/main/tt_2025_32)  
 
 TT-2026-13: [Coastal Ocean Temperature by Depth](https://github.com/afrikaniz3d-za/Tidy-Tuesday-Participation/tree/main/tt_2026_13)
-![](tt_2026_16/Winter_Labrador_Inversion_Final.png)  
+![](tt_2026_13/Winter_Labrador_Inversion_Final.png)  
 
 &nbsp;  
 
