@@ -1,1 +1,33 @@
+---
+title: "State of Crossref metadata by member country"
+subtitle: "Tidy Tuesday Submission for 2026-05-19"
+date: 2026-05-28
+author: Ntobeko Sosibo
+toc: false
+toc-location: left
+toc-title: "Outline"
+toc-depth: 6
+format:
+  html:
+    mainfont: "Inter, sans-serif"
+    page-layout: article
+    grid:
+      sidebar-width: 50px
+      body-width: 3840px
+      margin-width: 25px
+      gutter-width: 4rem
+    include-in-header:
+      text: |
+        <link rel="icon" type="image/png" href="www/icons/favicon.png">
+    embed-resources: true
+    self-contained: true
+execute:
+  freeze: auto
+editor: 
+  markdown: 
+    wrap: 72
+---
 
+## Too many variables  
+
+I knew going into this project that i wanted to make another map chart, and that I wanted only look at Sub-Saharan African countries. After taking a first-look at what a typical time series line chart of the `total_members` variable, It was too dense to see anything meaningful past the top 5 nations.  
