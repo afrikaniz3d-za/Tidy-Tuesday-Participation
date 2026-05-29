@@ -22,5 +22,12 @@ TT-2026-18: [Italian Industrial Production](https://github.com/afrikaniz3d-za/Ti
 &nbsp;
 
 TT-2026-19: [Twinned Towns](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-05-12)
-![](tt_2026_19/Twin_Final.png)
+![](tt_2026_19/Twin_Final.png)  
+
+&nbsp;
+
+TT-2026-20: [State of Crossref metadata by member country](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-05-12)  
+![](tt_2026_20/tt_crossref4.gif)  
+
+&nbsp;
 
