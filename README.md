@@ -26,8 +26,12 @@ TT-2026-19: [Twinned Towns](https://github.com/rfordatascience/tidytuesday/tree/
 
 &nbsp;
 
-TT-2026-20: [State of Crossref metadata by member country](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-05-12)  
+TT-2026-20: [State of Crossref metadata by member country](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-05-19)  
 ![](tt_2026_20/tt_crossref4.gif)  
 
 &nbsp;
 
+TT-2026-21: [Sustainable Energy 4 All!](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-05-26)  
+![](tt_2026_21/SE4All_Final.png)  
+
+&nbsp;
