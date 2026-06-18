@@ -17,7 +17,7 @@ TT-2026-14: [Bird Sightings at Sea](https://github.com/afrikaniz3d-za/Tidy-Tuesd
 &nbsp;
 
 TT-2026-18: [Italian Industrial Production](https://github.com/afrikaniz3d-za/Tidy-Tuesday-Participation/tree/main/tt_2026_19)
-![](tt_2026_18/images/tt_2026_18.gif)  
+![](tt_2026_18/tt_2026_18.gif)  
 
 &nbsp;
 
