@@ -37,6 +37,6 @@ TT-2026-21: [Sustainable Energy 4 All!](https://github.com/rfordatascience/tidyt
 &nbsp;
 
 TT-2026-22: [European Parental Leave Policies](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-06-02)  
-![](tt_2026_22/tt_2026_22ss.gif)  
+![](tt_2026_22/tt_2026_22.gif)  
 
 &nbsp;
