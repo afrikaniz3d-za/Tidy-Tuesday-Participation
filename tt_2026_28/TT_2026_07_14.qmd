@@ -1,1 +1,44 @@
+---
+title: "Many Penguins"
+subtitle: "Submission for Tidy Tuesday 2026-07-14"
+date: 2026-07-17
+author: Ntobeko Sosibo
+toc: true
+toc-location: right
+toc-title: "Outline"
+toc-depth: 6
+format:
+  html:
+    mainfont: "Inter, sans-serif"
+    page-layout: article
+    grid:
+      sidebar-width: 250px
+      body-width: 3840px
+      margin-width: 25px
+      gutter-width: 4rem
+    include-in-header:
+      text: |
+        <link rel="icon" type="image/png" href="www/icons/favicon.png">
+    embed-resources: true
+    self-contained: true
+execute:
+  freeze: auto
+editor: 
+  markdown: 
+    wrap: 72
+---
 
+## Focus: 
+
+&nbsp;
+
+&nbsp;
+
+## Sources  
+
+* [Penguins Call Underwater](https://hakaimagazine.com/news/penguins-call-underwater/)  
+* [Macaroni penguin, Eudyptes chrysolophus, single bird underwater, captive](https://www.dreamstime.com/royalty-free-stock-image-macaroni-penguin-eudyptes-chrysolophus-single-bird-underwater-captive-image34829096)  
+* [Rockhopper Penguin (Eudyptes chrysocome), adult, diving, captive, South Africa](https://www.alamy.com/stock-photo-rockhopper-penguin-eudyptes-chrysocome-adult-diving-captive-south-78567747.html)  
+* [Emperor Penguins: Breeding Season and Adaptations](https://www.bcheungbiomedicalillustration.com/penguin)  
+* [Penguins](https://ocean.si.edu/ocean-life/seabirds/penguins)  
+* [Lewis Pugh's United Nations Biodiversity Facebook Post](https://www.facebook.com/LewisPughOceans/posts/there-are-18-known-species-of-penguin-my-favourite-is-the-northern-rockhopper-wh/717605809748228/)
