@@ -1,7 +1,7 @@
 ---
 title: "Many Penguins"
 subtitle: "Submission for Tidy Tuesday 2026-07-14"
-date: 2026-07-17
+date: 2026-07-20
 author: Ntobeko Sosibo
 toc: true
 toc-location: right
@@ -13,8 +13,8 @@ format:
     page-layout: article
     grid:
       sidebar-width: 250px
-      body-width: 3840px
-      margin-width: 25px
+      body-width: 1720px
+      margin-width: 250px
       gutter-width: 4rem
     include-in-header:
       text: |
@@ -28,17 +28,101 @@ editor:
     wrap: 72
 ---
 
-## Focus: 
+## Underwater Flight    
+
+Penguins don't fly in the air, but they absolutely fly underwater. Water is roughly 800 times denser than air, meaning a penguin’s wing (flipper) has to act as both a powerful propeller and a highly efficient rudder.  
+
+This chart maps how a penguin's physical wing design dictates its entire hunting strategy, diving depth, and daily lifestyle.  
+
+&nbsp;
+
+### The Hand-Wing Index  
+
+The Hand-Wing Index (HWI) is the "missing link" that is usually under-explored. It is a standard formula used by ornithologists to measure how pointed and swept-back a wing is.
+
+To calculate HWI, scientists measure the distance from the wing joint to the very tip, and compare it to the length of the secondary feathers (the wider, blunter part of the wing).  
+
+&nbsp;
+
+```{r}
+#| code-fold: true
+#| label: penguins
+#| fig-width: 12
+#| fig-height: 17
+#| echo: true
+#| eval: true
+#| message: true
+#| warning: false
+
+library(tidyverse)
+library(ggrepel)
+
+# loading datasets
+many_penguins <- read_csv("data/many_penguins.csv")
+penguin_names <- read_csv("data/penguin_names.csv") 
+
+# join and summarize
+hwi_summary <- many_penguins |>
+  left_join(
+    select(penguin_names, species_name, common_name), 
+    by = join_by(species == species_name)
+  ) |>
+  filter(!is.na(`hand-wing.index`)) |>
+  group_by(genus, species, common_name) |>
+  summarise(
+    mean_hwi = mean(`hand-wing.index`, na.rm = TRUE),
+    mean_wing = mean(wing.length, na.rm = TRUE),
+    count = n(),
+    .groups = "drop"
+  )
+
+# plot showing common names and record counts
+ggplot(hwi_summary, aes(x = mean_hwi, y = mean_wing, color = genus)) +
+  geom_point(aes(size = count), alpha = 0.7) +
+  geom_text_repel(
+    aes(label = paste0(common_name, " (", count, ")")),
+    size = 3.5,                  
+    box.padding = 0.5,           
+    point.padding = 0.3,         
+    segment.color = "grey70",    
+    segment.size = 0.2,
+    max.overlaps = Inf           
+  ) +
+  scale_y_reverse() + 
+  theme_minimal() +
+  labs(
+    title = "Diagnostic: Penguin HWI vs Wing Length",
+    subtitle = "Inverted Y-axis representing potential 'depth' profile",
+    x = "Hand-Wing Index (HWI)",
+    y = "Wing Length (Inverted)"
+  )
+
+```
 
 &nbsp;
 
 &nbsp;
 
-## Sources  
+&nbsp;
+
+## Image References  
 
 * [Penguins Call Underwater](https://hakaimagazine.com/news/penguins-call-underwater/)  
 * [Macaroni penguin, Eudyptes chrysolophus, single bird underwater, captive](https://www.dreamstime.com/royalty-free-stock-image-macaroni-penguin-eudyptes-chrysolophus-single-bird-underwater-captive-image34829096)  
 * [Rockhopper Penguin (Eudyptes chrysocome), adult, diving, captive, South Africa](https://www.alamy.com/stock-photo-rockhopper-penguin-eudyptes-chrysocome-adult-diving-captive-south-78567747.html)  
 * [Emperor Penguins: Breeding Season and Adaptations](https://www.bcheungbiomedicalillustration.com/penguin)  
 * [Penguins](https://ocean.si.edu/ocean-life/seabirds/penguins)  
-* [Lewis Pugh's United Nations Biodiversity Facebook Post](https://www.facebook.com/LewisPughOceans/posts/there-are-18-known-species-of-penguin-my-favourite-is-the-northern-rockhopper-wh/717605809748228/)
+* [Lewis Pugh's United Nations Biodiversity Facebook Post](https://www.facebook.com/LewisPughOceans/posts/there-are-18-known-species-of-penguin-my-favourite-is-the-northern-rockhopper-wh/717605809748228/)  
+* [Pair of penguins. Small and big bird. Male and female of penguin. King penguin couple cuddling in wild nature with green background. Falkland Island](https://www.dreamstime.com/stock-photo-pair-penguins-small-big-bird-male-female-penguin-king-penguin-couple-cuddling-wild-nature-green-backgroun-image75945116)  
+* [Galapagos penguin (Spheniscus mendiculus) feeding underwater on small baitfish in the Galapagos Island Archipelago, Ecuador](https://www.robertharding.com/preview/979-9526/galapagos-penguin-spheniscus-mendiculus-feeding-underwater-small-baitfish/)  
+* [Warm water swimmers, Magellanic penguin (Spheniscus magellanicus)](https://zooboise.org/animals/magellanic-penguin/)  
+* [Two Chinstrap penguins gracefully swimming together underwater in the Antarctic Ocean. Pro Photo](https://www.vecteezy.com/photo/70862526-two-chinstrap-penguins-gracefully-swimming-together-underwater-in-the-antarctic-ocean)  
+* [Humboldt penguin](https://www.natures-safe.com/species/humboldt-penguin/)  
+* [Wikipedia - Snares penguin](https://en.wikipedia.org/wiki/Snares_penguin)  
+* [Little Blue Penguins Take Center Stage](https://kpcnotebook.scholastic.com/post/little-blue-penguins-take-center-stage)  
+* [TawakiCam - Erect-crested penguins on Antipodes Island · TawakiCam](https://tawaki.cam/)  
+* [Fiordland Penguin | Taronga Zoo | Taronga Zoo](https://www.taronga.org.au/wildlife-and-conservation/animals/detail/fiordland-penguin/)  
+* [Meet the Fiordland-crested penguin - Ashland Creek Press](https://ashlandcreekpress.com/2018/07/10/meet-the-fiordland-crested-penguin/)  
+* [Northern Rockhopper Penguin (Eudyptes chrysocome), adult, swimming, in water, captive, Cape Town, South Africa](https://www.alamy.com/northern-rockhopper-penguin-eudyptes-chrysocome-adult-swimming-in-water-captive-cape-town-south-africa-image370930017.html)  
+* [African penguin (Spheniscus demersus), adult, in water, swimming, captive, South Africa](https://www.alamy.com/african-penguin-spheniscus-demersus-adult-in-water-swimming-captive-south-africa-image433055488.html)  
+* [Learn All About the 18 Different Penguin Species](https://www.wikihow.com/Types)  
