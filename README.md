@@ -40,3 +40,8 @@ TT-2026-22: [European Parental Leave Policies](https://github.com/rfordatascienc
 ![](tt_2026_22/tt_2026_22.gif)  
 
 &nbsp;
+
+TT-2026-28: [Many Penguins](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-07-14)  
+![](tt_2026_28/Many_Penguins_Final.png)  
+
+&nbsp;
