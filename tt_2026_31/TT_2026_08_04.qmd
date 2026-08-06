@@ -1,0 +1,30 @@
+---
+title: "Basotho Wool"
+subtitle: "Submission for Tidy Tuesday 2026-08-04"
+date: 2026-08-07
+author: Ntobeko Sosibo
+toc: true
+toc-location: right
+toc-title: "Outline"
+toc-depth: 6
+format:
+  html:
+    mainfont: "Inter, sans-serif"
+    page-layout: article
+    grid:
+      sidebar-width: 250px
+      body-width: 1720px
+      margin-width: 250px
+      gutter-width: 4rem
+    include-in-header:
+      text: |
+        <link rel="icon" type="image/png" href="www/icons/favicon.png">
+    embed-resources: true
+    self-contained: true
+execute:
+  freeze: auto
+editor: 
+  markdown: 
+    wrap: 72
+---
+
