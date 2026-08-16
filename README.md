@@ -41,13 +41,12 @@ TT-2026-22: [European Parental Leave Policies](https://github.com/rfordatascienc
 
 &nbsp;
 
-TT-2026-22: [European Parental Leave Policies](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-06-02)  
-![](tt_2026_22/tt_2026_22.gif)  
+TT-2026-31: [Basotho Wool](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-07-14)  
+![](tt_2026_31/Basotho_Wool_Final.png)  
 
 &nbsp;
 
-
-TT-2026-31: [Basotho Wool](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-07-14)  
-![](tt_2026_31/Basotho_Wool_Final.png)  
+TT-2026-32: [Palomar Spectroscopic Survey of Nearby Galaxies](https://github.com/rfordatascience/tidytuesday/tree/main/data/2026/2026-08-11)  
+![](tt_2026_32/tt_palomar_l.gif)  
 
 &nbsp;
